@@ -1,7 +1,5 @@
 <h1 align="center" id="title">SpringBootDemoWebapp</h1>
 
-<p align="center"><img src="" alt="project-image"></p>
-
 <p id="description">Test web application that consults and modifies a price database.</p>
 
 <h2>🛠️ Installation Steps:</h2>
