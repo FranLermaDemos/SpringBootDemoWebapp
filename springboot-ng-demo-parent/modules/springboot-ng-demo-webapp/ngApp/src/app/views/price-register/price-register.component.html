@@ -1,0 +1,59 @@
+<h2>Alta de Precio</h2>
+<form [formGroup]="priceSubmitForm" (ngSubmit)="onSubmitPrice()">
+	
+  <div class="form-input-group">
+    <label for="productId">ID de Producto:</label>
+    <input type="number" id="productId" formControlName="productId" placeholder="Id del producto">
+    <div *ngIf="priceSubmitForm.get('productId')?.invalid && (priceSubmitForm.get('productId')?.dirty || priceSubmitForm.get('productId')?.touched)">
+      <div class="error-message" *ngIf="priceSubmitForm.get('productId')?.errors?.['required']">El ID de Producto es obligatorio.</div>
+      <div class="error-message" *ngIf="priceSubmitForm.get('productId')?.errors?.['min'] || priceSubmitForm.get('productId')?.errors?.['max']">El ID de Producto debe estar entre 10000 y 999999999.</div>
+    </div>
+  </div>
+
+  <div class="form-input-group">
+    <label for="brandId">ID de Marca:</label>
+    <input type="text" id="brandId" formControlName="brandId" placeholder="Id de la marca">
+    <div *ngIf="priceSubmitForm.get('brandId')?.invalid && priceSubmitForm.get('brandId')?.dirty">
+      <div class="error-message">El ID de Marca es obligatorio.</div>
+    </div>
+  </div>
+
+  <div class="form-input-group">
+    <label for="priority">Prioridad:</label>
+    <input type="number" id="priority" formControlName="priority" placeholder="Prioridad">
+    <div *ngIf="priceSubmitForm.get('priority')?.invalid && (priceSubmitForm.get('priority')?.dirty || priceSubmitForm.get('priority')?.touched)">
+      <div class="error-message" *ngIf="priceSubmitForm.get('priority')?.errors?.['required']">La Prioridad es obligatoria.</div>
+      <div class="error-message" *ngIf="priceSubmitForm.get('priority')?.errors?.['min'] || priceSubmitForm.get('priority')?.errors?.['max']">La Prioridad debe estar entre 0 y 9.</div>
+    </div>
+  </div>
+
+  <div class="form-input-group">
+    <label for="startDate">Fecha de Inicio:</label>
+    <input type="datetime-local" id="startDate" formControlName="startDate">
+    <div *ngIf="priceSubmitForm.get('startDate')?.invalid && priceSubmitForm.get('startDate')?.dirty">
+      <div class="error-message">La Fecha de Inicio es obligatoria.</div>
+    </div>
+  </div>
+
+  <div class="form-input-group">
+    <label for="endDate">Fecha de Fin:</label>
+    <input type="datetime-local" id="endDate" formControlName="endDate">
+    <div *ngIf="priceSubmitForm.get('endDate')?.invalid && priceSubmitForm.get('endDate')?.dirty">
+      <div class="error-message">La Fecha de Fin es obligatoria.</div>
+    </div>
+  </div>
+
+  <div class="form-input-group">
+    <label for="price">Precio:</label>
+    <input type="number" id="price" formControlName="price" placeholder="Precio del producto">
+    <div *ngIf="priceSubmitForm.get('price')?.invalid && (priceSubmitForm.get('price')?.dirty || priceSubmitForm.get('price')?.touched)">
+		<div class="error-message" *ngIf="priceSubmitForm.get('price')?.errors?.['required']">El Precio es obligatorio.</div>
+	    <div class="error-message" *ngIf="priceSubmitForm.get('price')?.errors?.['invalidDecimal']">El Precio debe tener exactamente dos decimales.</div>
+    </div>
+  </div>
+
+  <button type="submit" [disabled]="priceSubmitForm.invalid">Enviar</button>
+	<div *ngIf="serviceError" class="error-message">
+	  {{ serviceError }}
+	</div>
+</form>

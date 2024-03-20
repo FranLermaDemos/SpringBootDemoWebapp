@@ -1,0 +1,25 @@
+<div>
+  <h2>Lista de Precios</h2>
+  <ul>
+    <table> 
+		<tr>
+			<th>Código</th>
+			<th>Descripción</th>
+			<th>Marca</th>
+			<th>Prioridad</th>
+			<th>Fecha Inicio</th>
+			<th>Fecha Fin</th>
+			<th>Importe</th>
+		</tr>
+		<tr *ngFor="let price of prices">
+			<th>{{price.product.productId}}</th>
+			<th>{{ price.product.description }}</th>
+			<th>{{ price.brand.brandName}}</th>
+			<th>{{ price.priority }}</th>
+			<th>{{ price.startDate }}</th>
+			<th>{{ price.endDate }}</th>
+			<th>{{ price.price | currency: (price['currency']['iso']) }}</th>
+		</tr>
+    </table>
+  </ul>
+</div>
