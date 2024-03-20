@@ -1,0 +1,258 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.fralermo</groupId>
+		<artifactId>springboot-ng-demo-parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<relativePath>../..</relativePath>
+	</parent>
+
+	<artifactId>springboot-ng-demo-webapp</artifactId>
+	<packaging>jar</packaging>
+
+	<properties>
+		<mainClass>com.fralermo.springbootNgDemo.SpringBootDemoPricesWebApplication</mainClass>
+		<ng.src.appdir>ngApp</ng.src.appdir>
+		<ng.build.path>${basedir}/target</ng.build.path>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fralermo</groupId>
+			<artifactId>springboot-ng-demo-infra</artifactId>
+			<version>${demo.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${mapstruct.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct-processor</artifactId>
+			<version>${mapstruct.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok-mapstruct-binding</artifactId>
+			<version>${lombok-mapstruct-binding.version}</version>
+			<scope>compile</scope>
+		</dependency>
+	</dependencies>  
+	
+
+	<build>
+		<plugins>
+			<plugin>
+	            <groupId>org.springframework.boot</groupId>
+	            <artifactId>spring-boot-maven-plugin</artifactId>
+	            <configuration>
+	                <mainClass>${mainClass}</mainClass>
+	            </configuration>                   
+	        </plugin>
+			<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<version>1.14.2</version>
+				<executions>
+					<!-- Download Node and NPM for angular app compile -->
+			        <execution>
+			            <id>install-node-and-npm</id>
+			            <goals>
+			                <goal>install-node-and-npm</goal>
+			            </goals>
+			            <phase>generate-sources</phase>
+			        </execution>
+			    </executions>
+			    <configuration>
+					<workingDirectory>${ng.build.path}</workingDirectory>
+			        <nodeVersion>v20.9.0</nodeVersion>
+			        <npmVersion>10.2.4</npmVersion>
+			    </configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>remove-static-directory</id>
+						<phase>initialize</phase>
+						<configuration>
+							<target>
+								<echo message="Creating src/main/resources/static directory"/>
+								<delete dir="${basedir}/src/main/resources/static"/>
+								<mkdir dir="${basedir}/src/main/resources/static"/>"/>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<!-- Download Angular app node dependencies -->
+					<execution>
+						<id>install-ng-dependencies</id>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<phase>generate-resources</phase>
+						<configuration>
+							<workingDirectory>${ng.build.path}/node</workingDirectory>
+							<executable>${ng.build.path}/node/npm</executable>
+							<arguments>
+								<argument>install</argument>
+							</arguments>
+						</configuration>
+					</execution>
+
+					<!-- Build Angular app in ${basedir}/node/dist/ng-app -->
+					<execution>
+						<id>build-ng-application</id>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<phase>generate-resources</phase>
+						<configuration>
+							<workingDirectory>${ng.build.path}/node</workingDirectory>
+							<executable>${ng.build.path}/node/npm</executable>
+							<arguments>
+								<argument>run-script</argument>
+								<argument>build</argument>			
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<!-- Copy ngApp folder (Angular src app folder) to node directory for sharing node_modules directory 
+					between downloaded node and Angular app -->
+					<execution>
+						<id>prepare-angular-source</id>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<phase>initialize</phase>
+						<configuration>
+							<outputDirectory>${ng.build.path}/node</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/${ng.src.appdir}/</directory>
+									<!-- ESTO NO VA, NO SE POR QUE o_O, tengo que añadir al "clean"" los ficheros para que no colisionen con la version
+									del node descargado por frontend-maven-plugin  -->
+									<excludes>
+										<exclude>${basedir}/${ng.src.appdir}/node_modules</exclude>
+										<exclude>${basedir}/${ng.src.appdir}/dist</exclude>
+										<exclude>${basedir}/${ng.src.appdir}/.angular</exclude>
+									</excludes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<!-- Copy compiled angular application to project resources directory for packaging -->
+					<execution>
+						<id>copy-angular-dist</id>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<phase>generate-resources</phase>
+						<configuration>
+							<outputDirectory>${basedir}/src/main/resources/static</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${ng.build.path}/node/dist/ng-app</directory>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+			<!-- Clean target and Angular stuff -->
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>${basedir}/node</directory>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+						<fileset>
+							<directory>${basedir}/target</directory>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+						<fileset>
+							<directory>${basedir}/src/main/resources/static</directory>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+						<!-- NO ME GUSTA :( --> 
+						<fileset>
+							<directory>${basedir}/ngApp/node_modules</directory>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+						<fileset>
+							<directory>${basedir}/ngApp/.angular</directory>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+						<fileset>
+							<directory>${basedir}/ngApp/dist</directory>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+		</plugins>
+		
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.codehaus.mojo
+										</groupId>
+										<artifactId>
+											exec-maven-plugin
+										</artifactId>
+										<versionRange>
+											[3.1.0,)
+										</versionRange>
+										<goals>
+											<goal>exec</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	
+</project>
